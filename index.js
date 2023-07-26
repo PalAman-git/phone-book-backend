@@ -1,8 +1,14 @@
-
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 
-app.use(express.json());
+app.use(express.json());//middleware
+morgan.token('body', req => {
+  return JSON.stringify(req.body)
+})
+
+// app.use(morgan('tiny'));//middleware
+app.use(morgan(":method :url :status :res[content-length] :req[header] :response-time :body"));//middleware
 
 let persons = [
   {
@@ -52,14 +58,13 @@ app.delete("/api/persons/:id", (req, res) => {
 });
 
 app.post("/api/persons", (req, res) => {
-  const id = Math.floor(Math.random()*1000);
-
   const person = req.body;
-  console.log()
-  res.json(person)  
+  console.log(person)
+  res.send(person);
 });
 
+
 const PORT = 3001;
-app.listen(PORT, (req, res) => {
+app.listen(PORT, () => {
   console.log(`app listening at port ${PORT}`);
 });
