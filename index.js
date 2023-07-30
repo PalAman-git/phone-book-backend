@@ -43,6 +43,10 @@ app.get("/info", (req, res) => {
   );
 });
 
+app.get("/",(req,res) => {
+  res.send('You are on the homepage of the phone directory got to /api/persons for numbers and information');
+})
+
 app.get("/api/persons/:id", (req, res) => {
   const id = Number(req.params.id); //extracting the id from request
 
