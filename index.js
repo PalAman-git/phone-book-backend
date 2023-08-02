@@ -1,10 +1,9 @@
+require('dotenv').config();
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
 
 const Person = require('./model/person');
-
-const Person = require("./model/person");
 
 //middleware
 app.use(express.json());
