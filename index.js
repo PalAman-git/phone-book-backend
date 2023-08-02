@@ -1,6 +1,9 @@
+require('dotenv').config();
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
+
+const Person = require('./model/person');
 
 app.use(express.json());//middleware
 morgan.token('body', req => {
@@ -34,7 +37,7 @@ let persons = [
 ];
 
 app.get("/api/persons", (req, res) => {
-  res.json(persons);
+  Person.find({}).then(persons => res.json(persons));
 });
 
 app.get("/info", (req, res) => {
@@ -68,7 +71,7 @@ app.post("/api/persons", (req, res) => {
 });
 
 
-const PORT = 3001;
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`app listening at port ${PORT}`);
 });
