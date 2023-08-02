@@ -1,14 +1,22 @@
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
 
-app.use(express.json());//middleware
-morgan.token('body', req => {
-  return JSON.stringify(req.body)
-})
+const Person = require("./model/person");
+
+//middleware
+app.use(express.json());
+morgan.token("body", (req) => {
+  return JSON.stringify(req.body);
+});
 
 // app.use(morgan('tiny'));//middleware
-app.use(morgan(":method :url :status :res[content-length] :req[header] :response-time :body"));//middleware
+app.use(
+  morgan(
+    ":method :url :status :res[content-length] :req[header] :response-time :body"
+  )
+); //middleware
 
 let persons = [
   {
@@ -34,7 +42,7 @@ let persons = [
 ];
 
 app.get("/api/persons", (req, res) => {
-  res.json(persons);
+  Person.find({}).then((persons) => res.json(persons));
 });
 
 app.get("/info", (req, res) => {
@@ -43,32 +51,53 @@ app.get("/info", (req, res) => {
   );
 });
 
-app.get("/",(req,res) => {
-  res.send('You are on the homepage of the phone directory got to /api/persons for numbers and information');
-})
-
-app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id); //extracting the id from request
-
-  const note = persons.find((n) => n.id === id); //finding the note with the requested id
-
-  note ? res.json(note) : res.status(404).send(" Page not found "); //if note presend send note else send 404
+app.get("/", (req, res) => {
+  res.send(
+    "You are on the homepage of the phone directory got to /api/persons for numbers and information"
+  );
 });
 
-app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter((n) => n.id !== id);
-  res.status(204).end();
+app.get("/api/persons/:id", (req, res) => {
+  Person.findById(req.params.id).then((person) => res.json(person));
+});
+
+app.delete("/api/persons/:id", (req, res, next) => {
+  Person.findOneAndRemove(req.params.id)
+    .then(() => res.status(200).end())
+    .catch((err) => next(err));
 });
 
 app.post("/api/persons", (req, res) => {
-  const person = req.body;
-  console.log(person)
-  res.send(person);
+  const body = req.body;
+
+  if (body === undefined)
+    return res.status(400).json({ error: "content missing" });
+
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+  });
+
+  person.save().then((person) => {
+    res.json(person);
+  });
 });
 
+const errorHandler = (error, request, response, next) => {
+  console.log(error);
 
-const PORT = 3001;
+  if (error.name === "CastError") {
+    return res.status(400).json({ error: "malformatted id" });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);//it has to be the last middleware
+
+
+
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`app listening at port ${PORT}`);
 });
